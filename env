@@ -1,0 +1,18 @@
+# Dominio
+DOMAIN_NAME=frmurcia.42.fr
+
+# Configuración de MySQL/MariaDB
+DB_ROOT_PASSWORD=root_password           # Contraseña del usuario root de MariaDB
+DB_DATABASE=wordpress_db                 # Nombre de la base de datos
+DB_USER=wordpress_user                   # Nombre de usuario para la base de datos
+DB_PASSWORD=wordpress_password           # Contraseña del usuario de la base de datos
+
+# Configuración de WordPress
+WP_TITLE="My WordPress Site"             # Título del sitio de WordPress
+WP_ADMIN_USR=superuser                   # Nombre de usuario del administrador (no puede contener "admin" ni "administrator")
+WP_ADMIN_PWD=admin_password              # Contraseña del administrador
+WP_ADMIN_EMAIL=admin@example.com         # Correo electrónico del administrador
+WP_USR=regular_user                      # Nombre de usuario adicional
+WP_PWD=regular_user_password             # Contraseña del usuario adicional
+WP_EMAIL=regular_user@example.com        # Correo electrónico del usuario adicional
+

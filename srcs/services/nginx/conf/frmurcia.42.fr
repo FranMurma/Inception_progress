@@ -1,0 +1,47 @@
+server{
+	listen 80;
+	# Puerto de la máquina : puerto del contenedor
+	listen [::]:80;
+	# Configuración: [::] es cualquiera :80 al puerto 80	
+	# Puerto de la máquina : puerto del contenedor
+	server_name frmurcia.42.fr www.frmurcia.42.fr;
+	# Redirigir a https cuando se ponga el http sin "s" para que sea un sitio seguro
+	return 301 https://frmurcia.42.fr$request_uri;
+}
+
+server {
+	# Configuracion SSL (ver que en Dockerfile tenemos EXPOSURE 443)
+	listen 443 ssl;
+	# Puerto de la máquina : puerto del contenedor
+	listen [::]:443 ssl;
+	
+    # Nombre del dominio
+	server_name frmurcia.42.fr www.frmurcia.42.fr;
+
+	# Activamos protocolo
+	ssl on;
+
+	# Protocolo de encriptacion ssl
+	# Los numeros son las versiones del protocolo, para mejorar rendimiento y seguridad
+	ssl_protocols		TLSv1.2 TLSv1.3;
+
+	# Localizacion de las claves ssl
+	ssl_certificate		/etc/nginx/ssl/frmurcia.42.fr.crt;
+	ssl_certificate_key	/etc/nginx/ssl/frmurcia.42.fr.key;
+
+	# Sitio web que abrira por defecto
+	root /var/www/html;
+
+	# Añadimos index.php si usamos PHP
+	index index.php index.html index.htm;
+
+	location / {
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+		try_files $uri $uri/ =404;
+	}
+	location ~ \.php$ {
+		include snippets/fastcgi-php.conf;
+		fastcgi_pass wordpress:9000;
+	}
+}

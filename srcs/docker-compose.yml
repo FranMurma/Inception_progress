@@ -1,0 +1,97 @@
+# El archivo YAML es donde definimos los servicios, redes y volúmenes de nuestra aplicación Docker
+# Tenemos 3 servicios a instalar: mariadb, wordpress y NGINX. Irá todo unido en una red: Inception.
+# Tendremos 2 volúmenes para guardar los datos de mariadb y wordpress
+services:
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    # Networks va con '-' porque podemos poner varias redes 
+    networks:
+      - inception
+    # El volumen que guarda los datos de mariadb se llamara mariadb_volume y lo guardamos en:
+    # /var/lib/mysql, dentro del contenedor:
+    # Where to Store Data: The -v /my/own/datadir:/var/lib/mysql:Z part of the command mounts 
+    # the /my/own/datadir directory from the underlying host system as /var/lib/mysql inside 
+    # the container, where MariaDB by default will write its data files.
+    volumes:
+      - mariadb_volume:/var/lib/mysql
+    # Creamos la imagen desde services/mariadb usando el archivo Dockerfile
+    build:
+      context: services/mariadb
+      dockerfile: Dockerfile
+    # Usamos el puerto 3306 para conexión INTERNA
+    expose:
+      - "3306:3306"
+    # Reiniciaremos el contenedor siempre que se detenga
+    restart: always
+    environment:
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    volumes:
+      - wordpress_volume:/var/www/html
+    networks:
+      - inception
+    depends_on:
+      - wordpress
+    build:
+      context: services/nginx
+      dockerfile: Dockerfile
+    # Aquí exponemos el puerto 443 EXTERNAMENTE. El puerto 443 del contenedor va al 443 del host
+    ports:
+      - "443:443"
+    restart: always
+
+  wordpress:
+    image: wordpress
+    container_name: wordpress
+    networks:
+      - inception
+    volumes:
+      - wordpress_volume:/var/www/html
+    build:
+      context: services/wordpress
+      dockerfile: Dockerfile
+    expose:
+      - "9000:9000"
+    depends_on:
+      - mariadb
+    restart: always
+    environment:
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      WP_TITLE: ${WP_TITLE}
+      WP_ADMIN_USR: ${WP_ADMIN_USR}
+      WP_ADMIN_PWD: ${WP_ADMIN_PWD}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
+      WP_USR: ${WP_USR}
+      WP_PWD: ${WP_PWD}
+      WP_EMAIL: ${WP_EMAIL}
+
+# Configuración de los volúmenes
+volumes:
+  mariadb_volume:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/frmurcia/data/mariadb'
+  wordpress_volume:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/frmurcia/data/wordpress'
+
+networks:
+  inception:
+    driver: bridge
+
